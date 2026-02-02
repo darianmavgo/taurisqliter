@@ -5,9 +5,9 @@ import { Box } from '@react-three/drei';
 import { useKeyboardControls } from './hooks/useKeyboardControls';
 import * as THREE from 'three';
 
-export default function Car({ position = [0, 2, 0] }: { position?: [number, number, number] }) {
+export default function Car({ position = [0, 2, 0], inputMap }: { position?: [number, number, number], inputMap: any }) {
   const rigidBody = useRef<RapierRigidBody>(null);
-  const controls = useKeyboardControls();
+  const controls = useKeyboardControls(inputMap?.keyboard);
   
   // Tuning
   const speed = 50;
@@ -24,24 +24,71 @@ export default function Car({ position = [0, 2, 0] }: { position?: [number, numb
     // Quaternion magic to get forward/right vectors
     const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(quat);
-    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(quat);
 
-    // Controls
-    let driveImpulse = 0;
-    if (controls.forward) driveImpulse += speed * delta;
-    if (controls.backward) driveImpulse -= speed * delta;
-    if (controls.boost) driveImpulse *= 2;
+    // Controls (Keyboard + Gamepad)
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const gp = gamepads[0]; // Primary controller
+
+    // 1. Throttle / Drive
+    let throttleInput = 0;
+    if (controls.forward) throttleInput += 1;
+    if (controls.backward) throttleInput -= 1;
+
+    // 2. Steering
+    let steerInput = 0;
+    if (controls.left) steerInput += 1; 
+    if (controls.right) steerInput -= 1;
+
+    let isBoosting = controls.boost;
+    let isJumping = controls.jump;
+
+    // Gamepad Overrides using Map
+    if (gp && inputMap?.gamepad) {
+        const gm = inputMap.gamepad;
+        const deadzone = (v: number) => Math.abs(v) < 0.1 ? 0 : v;
+        
+        // Helper to check input based on map
+        const checkInput = (action: string) => {
+           const conf = gm[action];
+           if (!conf) return 0;
+           if (conf.type === 'axis') {
+              return deadzone(gp.axes[conf.index]) * (conf.scale || 1);
+           } else if (conf.type === 'button') {
+              return gp.buttons[conf.index]?.pressed ? (conf.scale || 1) : 0;
+           }
+           return 0;
+        };
+
+        // Throttle
+        const gpThrottle = checkInput('throttle');
+        if (gpThrottle !== 0) throttleInput = gpThrottle;
+
+        // Steer
+        const gpSteer = checkInput('steer');
+        if (gpSteer !== 0) steerInput = gpSteer;
+
+        // Buttons
+        if (checkInput('jump') > 0.5) isJumping = true;
+        if (checkInput('boost') > 0.5) isBoosting = true;
+    }
+
+    // Apply Physics
+    let driveImpulse = throttleInput * speed * delta;
+    if (isBoosting) driveImpulse *= 2;
 
     let turnTorque = 0;
-    // Only turn if moving (arcade mechanic)
     const movingSpeed = vec3(velocity).length();
     if (movingSpeed > 1) {
-       if (controls.left) turnTorque += turnSpeed * delta;
-       if (controls.right) turnTorque -= turnSpeed * delta;
+       turnTorque = steerInput * turnSpeed * delta;
        
        // Reverse steering when going backwards for intuitive controls
        const dot = forward.dot(new THREE.Vector3(velocity.x, velocity.y, velocity.z));
        if (dot < 0) turnTorque *= -1;
+    }
+
+    // Jump (Space / A)
+    if (isJumping && Math.abs(velocity.y) < 0.5) {
+        body.applyImpulse({ x: 0, y: 15, z: 0 }, true);
     }
 
     // Apply forces
@@ -51,6 +98,7 @@ export default function Car({ position = [0, 2, 0] }: { position?: [number, numb
 
     // 2. Steering (Torque)
     body.applyTorqueImpulse({ x: 0, y: turnTorque, z: 0 }, true);
+
 
     // 3. Fake friction / drag
     body.setLinvel({ x: velocity.x * drag, y: velocity.y, z: velocity.z * drag }, true);

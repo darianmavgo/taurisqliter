@@ -1,68 +1,49 @@
 import { useEffect, useState } from 'react';
 
-export const useKeyboardControls = () => {
+
+interface KeyboardMap {
+  [action: string]: string; // "KeyW,ArrowUp"
+}
+
+export const useKeyboardControls = (keyMap: KeyboardMap | null) => {
   const [controls, setControls] = useState({
     forward: false,
     backward: false,
     left: false,
     right: false,
-    brake: false,
-    boost: false,
     jump: false,
+    boost: false,
   });
 
+  const [activeMap, setActiveMap] = useState<Record<string, string>>({});
+
   useEffect(() => {
+    // Parse keyMap into a lookup: { "KeyW": "forward", "ArrowUp": "forward" }
+    if (keyMap) {
+      const lookup: Record<string, string> = {};
+      Object.entries(keyMap).forEach(([action, keys]) => {
+        keys.split(',').forEach(k => {
+          lookup[k.trim()] = action;
+        });
+      });
+      setActiveMap(lookup);
+    }
+  }, [keyMap]);
+
+  useEffect(() => {
+    if (!keyMap) return; // Wait for map
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.code) {
-        case 'ArrowUp':
-        case 'KeyW':
-          setControls((c) => ({ ...c, forward: true }));
-          break;
-        case 'ArrowDown':
-        case 'KeyS':
-          setControls((c) => ({ ...c, backward: true }));
-          break;
-        case 'ArrowLeft':
-        case 'KeyA':
-          setControls((c) => ({ ...c, left: true }));
-          break;
-        case 'ArrowRight':
-        case 'KeyD':
-          setControls((c) => ({ ...c, right: true }));
-          break;
-        case 'Space':
-          setControls((c) => ({ ...c, brake: true }));
-          break;
-        case 'ShiftLeft':
-          setControls((c) => ({ ...c, boost: true }));
-          break;
+      const action = activeMap[e.code];
+      if (action) {
+        setControls(c => ({ ...c, [action]: true }));
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      switch (e.code) {
-        case 'ArrowUp':
-        case 'KeyW':
-          setControls((c) => ({ ...c, forward: false }));
-          break;
-        case 'ArrowDown':
-        case 'KeyS':
-          setControls((c) => ({ ...c, backward: false }));
-          break;
-        case 'ArrowLeft':
-        case 'KeyA':
-          setControls((c) => ({ ...c, left: false }));
-          break;
-        case 'ArrowRight':
-        case 'KeyD':
-          setControls((c) => ({ ...c, right: false }));
-          break;
-         case 'Space':
-          setControls((c) => ({ ...c, brake: false }));
-          break;
-        case 'ShiftLeft':
-          setControls((c) => ({ ...c, boost: false }));
-          break;
+      const action = activeMap[e.code];
+      if (action) {
+        setControls(c => ({ ...c, [action]: false }));
       }
     };
 
@@ -73,7 +54,7 @@ export const useKeyboardControls = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [activeMap, keyMap]);
 
   return controls;
 };

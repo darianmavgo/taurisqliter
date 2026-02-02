@@ -2,7 +2,7 @@ import { RigidBody } from '@react-three/rapier';
 import { Box, Sphere } from '@react-three/drei';
 import Car from './Car';
 
-export default function Scene() {
+export default function Scene({ inputMap }: { inputMap: any }) {
   return (
     <>
       {/* Ground */}
@@ -36,7 +36,7 @@ export default function Scene() {
       </RigidBody>
 
       {/* Player Car */}
-      <Car position={[0, 2, 10]} />
+      <Car position={[0, 2, 10]} inputMap={inputMap} />
     </>
   );
 }

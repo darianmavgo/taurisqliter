@@ -15,7 +15,8 @@ pub fn run() {
             commands::open_database_dialog,
             commands::connect_db,
             commands::get_tables,
-            commands::get_table_rows
+            commands::get_table_rows,
+            commands::get_input_mappings
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

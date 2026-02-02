@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import ConnectScreen from './components/ConnectScreen';
 import TableBrowser from './components/TableBrowser';
 import Game from './components/Game/Game';
@@ -9,6 +10,28 @@ type AppMode = 'menu' | 'browser' | 'game';
 function App() {
   const [mode, setMode] = useState<AppMode>('menu');
   const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    // Attempt to connect to default App.db
+    async function init() {
+       try {
+         // Resolve App.db path relative to app? Or just use "App.db" which resolves to cwd or resource?
+         // Since we run from project root, "App.db" creates it there.
+         // Better: Use `resolveResource` or just local path.
+         // For dev: use absolute path or local relative.
+         // Let's try to connect to "./App.db".
+         const dbPath = "./App.db";
+         const connected = await invoke('connect_db', { path: dbPath });
+         if (connected) {
+           setIsConnected(true);
+           console.log("Connected to App.db");
+         }
+       } catch(e) {
+         console.warn("Could not auto-connect App.db", e);
+       }
+    }
+    init();
+  }, []);
 
   const handleConnect = () => {
     setIsConnected(true);

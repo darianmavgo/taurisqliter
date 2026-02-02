@@ -12,12 +12,20 @@ pub async fn open_database_dialog(app: tauri::AppHandle) -> CommandResult<Option
 
 #[tauri::command]
 pub async fn connect_db(path: String, state: State<'_, AppState>) -> CommandResult<bool> {
+    if path.ends_with("App.db") {
+        let _ = db::init_app_db(&path);
+    }
     db::connect(path, &state.db)
 }
 
 #[tauri::command]
 pub async fn get_tables(state: State<'_, AppState>) -> CommandResult<Vec<String>> {
     db::get_tables(&state.db)
+}
+
+#[tauri::command]
+pub async fn get_input_mappings(state: State<'_, AppState>) -> CommandResult<serde_json::Value> {
+    db::get_mappings(&state.db)
 }
 
 #[tauri::command]

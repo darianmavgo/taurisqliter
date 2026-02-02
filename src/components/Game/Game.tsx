@@ -1,11 +1,20 @@
+import { invoke } from '@tauri-apps/api/core';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Environment, OrbitControls } from '@react-three/drei';
 import Scene from './Scene';
 import './Game.css';
 
 export default function Game({ onExit }: { onExit: () => void }) {
+  const [inputMap, setInputMap] = useState<any>(null);
+  
+  useEffect(() => {
+     invoke('get_input_mappings').then(setInputMap).catch(console.error);
+  }, []);
+
+  if (!inputMap) return <div className="loading">Loading Configuration...</div>;
+
   return (
     <div className="game-container">
       <div className="game-ui">
@@ -21,7 +30,7 @@ export default function Game({ onExit }: { onExit: () => void }) {
             castShadow 
           />
           <Physics gravity={[0, -9.81, 0]}>
-            <Scene />
+            <Scene inputMap={inputMap} />
           </Physics>
           <OrbitControls />
         </Suspense>
