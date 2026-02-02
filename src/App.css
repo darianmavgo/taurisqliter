@@ -66,3 +66,22 @@ button:focus-visible {
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
+.menu-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  gap: 2rem;
+}
+
+.menu-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.menu-buttons button {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+}
