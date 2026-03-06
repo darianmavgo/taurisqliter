@@ -1,0 +1,117 @@
+.gamepad-test-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: white;
+  background: #111;
+  padding: 2rem;
+}
+
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.no-gamepad {
+  padding: 2rem;
+  border: 2px dashed #444;
+  border-radius: 1rem;
+  color: #888;
+}
+
+.gamepad-visualizer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  max-width: 800px;
+}
+
+.gp-header {
+  text-align: center;
+  font-family: monospace;
+  background: #222;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.gp-axes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.axis-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.axis-bar-bg {
+  flex: 1;
+  height: 20px;
+  background: #333;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.axis-bar-fill {
+  height: 100%;
+  position: absolute;
+  background-color: #3b82f6;
+}
+
+.axis-value {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-size: 0.8rem;
+  line-height: 20px;
+  text-shadow: 0 1px 2px black;
+  z-index: 10;
+}
+
+.gp-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 1rem;
+}
+
+.btn-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  background: #222;
+  border-radius: 8px;
+  transition: transform 0.1s;
+}
+
+.btn-indicator.pressed {
+  background: #333;
+  transform: scale(0.95);
+}
+
+.btn-circle {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #555;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-indicator.pressed .btn-circle {
+  border-color: #3b82f6;
+}
+
+.btn-fill {
+  width: 100%;
+  height: 100%;
+  background: #3b82f6;
+}

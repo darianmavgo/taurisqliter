@@ -54,7 +54,9 @@ export default function Car({ position = [0, 2, 0], inputMap }: { position?: [nu
            if (conf.type === 'axis') {
               return deadzone(gp.axes[conf.index]) * (conf.scale || 1);
            } else if (conf.type === 'button') {
-              return gp.buttons[conf.index]?.pressed ? (conf.scale || 1) : 0;
+              // Use .value for analog triggers (0.0 to 1.0)
+              const btn = gp.buttons[conf.index];
+              return btn ? (btn.value * (conf.scale || 1)) : 0;
            }
            return 0;
         };

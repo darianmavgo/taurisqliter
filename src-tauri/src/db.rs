@@ -44,20 +44,18 @@ pub fn init_app_db(path: &str) -> CommandResult<()> {
     let count_gp: i64 = conn.query_row("SELECT count(*) FROM gamepad_map", [], |row| row.get(0))?;
     if count_gp == 0 {
         let gp_defaults = vec![
-            ("throttle", "axis", 1, -1.0), // Left Stick Y inverted
-            ("steer", "axis", 0, -1.0),   // Left Stick X inverted logic in code? No, usually Left=-1, Right=1. Car logic expects Left=Positive torque usually? 
-            // In Car.tsx: Left(-1) -> turn left(+1 torque). So scale should be -1 if stick is normal.
+            ("throttle", "button", 7, 1.0), // R2 / RT (Right Trigger)
+            ("steer", "axis", 0, -1.0),   
             ("jump", "button", 0, 1.0),    // A / Cross
             ("boost", "button", 5, 1.0),   // R1 / RB
         ];
-        // Note: For 'steer', standard gamepad: Left is -1.0, Right is 1.0. 
-        // Our car logic: `if (controls.left) steerInput += 1`.
-        // `steerInput = -axisX`. So if axis is -1 (Left), steerInput becomes 1 (Turn Left).
-        // So scale should be -1.0.
 
         for (act, type_, idx, scale) in gp_defaults {
-             conn.execute("INSERT INTO gamepad_map (action, input_type, index_id, scale) VALUES (?1, ?2, ?3, ?4)", (act, type_, idx, scale))?;
+             conn.execute("INSERT OR REPLACE INTO gamepad_map (action, input_type, index_id, scale) VALUES (?1, ?2, ?3, ?4)", (act, type_, idx, scale))?;
         }
+    } else {
+        // Enforce the requested change for the user even if DB exists
+        conn.execute("INSERT OR REPLACE INTO gamepad_map (action, input_type, index_id, scale) VALUES ('throttle', 'button', 7, 1.0)", [])?;
     }
 
     Ok(())
